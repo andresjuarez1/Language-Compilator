@@ -1,8 +1,68 @@
+function Token(type, lexeme) {
+  this.type = type;
+  this.lexeme = lexeme;
+}
+
+function agregarToken(tokens, type, lexeme) {
+  tokens.push(new Token(type, lexeme));
+}
+
+function analizadorLexico(declaration) {
+  const tokens = [];
+  let apuntador = 0;
+
+  const reportarError = (mensaje) => {
+    console.error(`Error léxico: ${mensaje}`);
+  };
+
+  while (apuntador < declaration.length) {
+    let char = declaration[apuntador];
+
+    // Ignorar espacios en blanco
+    if (/\s/.test(char)) {
+      apuntador++;
+      continue;
+    }
+
+    // Implementa lógica para reconocer tokens aquí
+    if (/[a-zA-Z]/.test(char)) {
+      // Token para identificadores
+      let lexeme = '';
+      while (/[a-zA-Z0-9_]/.test(char) && apuntador < declaration.length) {
+        lexeme += char;
+        apuntador++;
+        char = declaration[apuntador];
+      }
+      agregarToken(tokens, 'IDENTIFIER', lexeme);
+    } else if (/[0-9]/.test(char)) {
+      // Token para números
+      let lexeme = '';
+      while (/[0-9]/.test(char) && apuntador < declaration.length) {
+        lexeme += char;
+        apuntador++;
+        char = declaration[apuntador];
+      }
+      agregarToken(tokens, 'NUMBER', lexeme);
+    } else {
+      // Caracteres no reconocidos
+      reportarError(`Caracter no reconocido: ${char}`);
+      apuntador++;
+    }
+  }
+
+  return tokens;
+}
+
+
+
 
 function algoritmoAnalisis(declaration) {
   let stack = generarStack(declaration);
   let stackContent = [];
   let apuntador = 0;
+
+  const tokens = analizadorLexico(declaration);
+  console.log('Tokens:', tokens);
 
   const popInfo = (X) => {
     stackContent.push(
@@ -109,20 +169,6 @@ function obtenerProduccion(noTerminal, next) {
     case "CONMYI":
       return /[=]/.test(next) ? ["="] : [];
 
-        /* if (/[=]/.test(next)) {
-            return ["=", "="];
-        }
-          else if (/['<']/.test(next)){
-            return ('<')
-          }
-          else if (/[>]/.test(next)) {
-            return [">"];
-          } else if (/['=<']/.test(next)) {
-            return ["=", "<"];
-          }
-          else if (/['=>']/.test(next)) {
-            return ["=", ">"];
-          }  */
 
     case "DP":
       return [":"]
@@ -208,9 +254,9 @@ function obtenerProduccion(noTerminal, next) {
     case "I4":
       return ["COND", "I5"];
     case "I5":
-      return ["D", "I6"];
+      return ["L", "I6"];
     case "I6":
-      return ["RD", "I7"];
+      return ["RL", "I7"];
     case "I7":
       return ["PAR2", "I8"];
     case "I8":
@@ -232,9 +278,9 @@ function obtenerProduccion(noTerminal, next) {
       case "W4":
         return ["COND", "W5"];
       case "W5":
-        return ["D", "W6"];
+        return ["L", "W6"]; //AQUI CAMBIAMOS
       case "W6":
-        return ["RD", "W7"];
+        return ["RL", "W7"]; //AQUI CAMBIAMOS 
       case "W7":
         return ["PAR2", "W8"];
       case "W8":
@@ -275,6 +321,7 @@ function obtenerProduccion(noTerminal, next) {
           return ["PAR2", "F12"];
         case "F12":
           return ["CORA", "CORC"];
+
           case "FUNC":
             return ["F", "FUN1"];
           case "FUN1":
@@ -284,50 +331,9 @@ function obtenerProduccion(noTerminal, next) {
           case "FUN3":
             return ["PAR1", "FUN4"];
           case "FUN4":
-            return ["L", "FUN5"];
+            return ["PAR2", "FUN5"];
           case "FUN5":
-            return ["RL", "FUN6"];
-          case "FUN6":
-            return ["DP", "FUN7"];
-          case "FUN7":
-            return  /[n]/.test(next) ? ["TVN", "FUN8"] : /[f]/.test(next) ? ["TVF", "FUN8"] : ["TVS", "FUN8"];
-/*             if (["s", "t", "r", "i", "n", "g"].includes(next[0])) {
-              return ["TVS", "FUN8"];
-            } else if (["n", "u", "m"].includes(next[0])) {
-              return ["TVN", "FUN8"];
-            } else if (["f", "l", "o", "a", "t"].includes(next[0])) {
-              return ["TVF", "FUN8"];
-            } else {
-              return [];
-            } */
-          case "FUN8":
-            return ["CS", "FUN9"];
-          case "FUN9":
-            return ["L", "FUN10"];
-          case "FUN10":
-            return ["RL", "FUN11"];
-          case "FUN11":
-            return ["DP", "FUN12"];
-          case "FUN12":
-            return  /[n]/.test(next) ? ["TVN", "FUN13"] : /[f]/.test(next) ? ["TVF", "FUN13"] : ["TVS", "FUN13"];
-            /* if (["s", "t", "r", "i", "n", "g"].includes(next[0])) {
-              return ["TVS", "FUN13"];
-            } else if (["n", "u", "m"].includes(next[0])) {
-              return ["TVN", "FUN13"];
-            } else if (["f", "l", "o", "a", "t"].includes(next[0])) {
-              return ["TVF", "FUN13"];
-            } else {
-              return [];
-            } */
-          case "FUN13":
-            return ["PAR2", "FUN14"];
-          case "FUN14":
-            return ["DP", "FUN15"];
-          case "FUN15":
-            return  /[n]/.test(next) ? ["TVN", "FUN16"] : /[f]/.test(next) ? ["TVF", "FUN16"] : ["TVS", "FUN16"];
-          case "FUN16":
             return ["CORA", "CORC"];
-
     default:
       return [];
   }
